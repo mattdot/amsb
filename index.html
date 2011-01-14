@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Automate My Small Business</title>
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css" />
+    <script src="http://code.jquery.com/jquery-1.4.4.min.js" type="text/javascript"></script>
+    <script src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function get_rss_feed() {
+            //clear the content in the div for the next feed.
+            $("#podcast-list").empty();
+
+            //use the JQuery get to grab the URL from the selected item, put the results in to an argument for parsing in the inline function called when the feed retrieval is complete
+            $.get("podcast.xml", null, function (d) {
+
+                //find each 'item' in the file and parse it
+                $(d).find('item').each(function () {
+
+                    //name the current found item this for this particular loop run
+                    var $item = $(this);
+                    // grab the post title
+                    var title = $item.find('title').text();
+                    // grab the post's URL
+                    var link = $item.find('enclosure').attr('url');
+                    // next, the description
+                    var description = $item.find('description').text();
+                    //don't forget the pubdate
+                    var pubDate = new Date( $item.find('pubDate').text()).toLocaleDateString();
+
+                    // now create a var 'html' to store the markup we're using to output the feed to the browser window
+                    var html = "<li><div><h4 class=\"\"><a href=\"" + link + "\" target=\"_blank\">" + title + "<\/a><\/h4>";
+                    html += "<p class=\"ul-li-aside ul-li-desc\"><em>" + pubDate + "<\/em><\/p>";
+                    html += "<p class=\"ul-li-desc\">" + description + "</p>";
+                    html += "<\/div><\/li>";
+
+                    //put that feed content on the screen!
+                    $('#podcast-list').append($(html));
+                });
+
+                $('#podcast-list').listview('refresh');
+
+            }, 'xml');
+
+        };
+
+        $(document).ready(function(){
+            //apply overrides here
+            $.ajaxSetup({
+                error: function (x, e) {
+                    if (x.status == 0) {
+                        alert('You are offline!!\n Please Check Your Network.');
+                    } else if (x.status == 404) {
+                        alert('Requested URL not found.');
+                    } else if (x.status == 500) {
+                        alert('Internel Server Error.');
+                    } else if (e == 'parsererror') {
+                        alert('Error.\nParsing JSON Request failed.');
+                    } else if (e == 'timeout') {
+                        alert('Request Time out.');
+                    } else {
+                        alert('Unknow Error.\n' + x.responseText);
+                    }
+                }
+            });
+
+            $('div#podcast').live('pageshow', function (event, ui) {
+                get_rss_feed();
+            });
+        });
+
+
+    </script>
+</head>
+<body>
+    <div data-role="page" id="home">
+        <div data-role="header">
+            <h1>
+                AMSB</h1>
+        </div>
+        <div data-role="content">
+            <ul data-role="listview" data-theme="g">
+                <li><a href="#podcast">AMSB Podcast</a></li>
+            </ul>
+        </div>
+        <div data-role="footer">
+        </div>
+    </div>
+    <div data-role="page" id="podcast">
+        <div data-role="header">
+            <h1>
+                Podcast</h1>
+        </div>
+        <div data-role="content" id="podcast-content">
+            <ul data-role="listview" data-theme="c" id="podcast-list">
+            </ul>
+        </div>
+        <div data-role="footer">
+        </div>
+    </div>
+</body>
+</html>
